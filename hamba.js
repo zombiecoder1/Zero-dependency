@@ -13,6 +13,28 @@ const crypto = require("crypto");
 const fs = require("fs");
 const path = require("path");
 
+// ─── .env Loader (zero-dependency) ───────────────────────────
+(function loadEnv() {
+  try {
+    const envPath = path.resolve(".env");
+    if (fs.existsSync(envPath)) {
+      const content = fs.readFileSync(envPath, "utf8");
+      for (const line of content.split("\n")) {
+        const t = line.trim();
+        if (!t || t.startsWith("#")) continue;
+        const eq = t.indexOf("=");
+        if (eq === -1) continue;
+        const k = t.slice(0, eq).trim();
+        let v = t.slice(eq + 1).trim();
+        if ((v.startsWith('"') && v.endsWith('"')) || (v.startsWith("'") && v.endsWith("'")))
+          v = v.slice(1, -1);
+        if (!process.env[k]) process.env[k] = v;
+      }
+      console.log("[ENV] Loaded:", envPath);
+    }
+  } catch (_) {}
+})();
+
 // ─── Config ──────────────────────────────────────────────────
 const PORT = parseInt(process.env.PORT || "5010", 10);
 const OPENCODE_BASE = process.env.OPENCODE_BASE || "https://opencode.ai/zen/v1";
@@ -306,7 +328,7 @@ const PROVIDER_CONFIG = {
     name: "OpenCode",
     baseUrl: process.env.OPENCODE_BASE || "https://opencode.ai/zen/v1",
     key: process.env.OPENCODE_API_KEY || "",
-    priority: 1,
+    priority: 2,
     type: "openai",
     models: [
       { name: "model-pro", apiModel: "deepseek-v4-flash-free" },
@@ -322,7 +344,7 @@ const PROVIDER_CONFIG = {
     name: "Groq",
     baseUrl: process.env.GROQ_BASE || "https://api.groq.com/openai/v1",
     key: process.env.GROQ_API_KEY || "",
-    priority: 2,
+    priority: 1,
     type: "openai",
     models: [
       // Fallback alias — OpenCode free model names → Groq models
@@ -4582,6 +4604,23 @@ async function executeSingleAgent(agentId, messages, stream, sessionId, tools, p
     undefined,
     tools,
   );
+
+  // 🧟 সব provider fail করলে error message দেখাও
+  if (!response || !response.success) {
+    log("WARN", "SINGLE_AGENT_FAIL", {
+      agent: agent.id,
+      error: response?.error || "unknown",
+    });
+    return {
+      success: false,
+      content:
+        "🧟 ভাইয়া! সব provider ব্যর্থ হয়েছে। OpenCode-র API key লাগতে পারে অথবা Groq-এর key সেট করা নেই। বিস্তারিত: " +
+        (response?.error || "unknown"),
+      error: response?.error || "unknown",
+      maskedModel: agent.id,
+      agent: { id: agent.id, name: agent.name, role: agent.role },
+    };
+  }
 
   // Auto web search if requested
   response = await autoWebSearch(agent, response, userInput);
