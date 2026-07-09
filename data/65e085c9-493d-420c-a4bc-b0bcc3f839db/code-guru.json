@@ -1,0 +1,12 @@
+[
+  {
+    "role": "user",
+    "content": "Just say hello in 2 words",
+    "timestamp": "2026-07-09T20:01:33.396Z"
+  },
+  {
+    "role": "assistant",
+    "content": "Hello there",
+    "timestamp": "2026-07-09T20:01:33.396Z"
+  }
+]
