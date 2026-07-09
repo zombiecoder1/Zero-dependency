@@ -4411,30 +4411,23 @@ async function executeMission(
   };
 }
 
-// ─── 🧟 SSOT Auto-Inject: প্রতিটি agent নিজে নিজেই project context পাবে ──
-function getSSOTContext() {
-  try {
-    const dir = mcpWorkingDir || path.resolve(".");
-    const ssotPath = path.join(dir, ".zombiecoder", "SSOT.md");
-    if (fs.existsSync(ssotPath)) {
-      const content = fs.readFileSync(ssotPath, "utf8").trim();
-      if (content && content.length > 0) {
-        const truncated = content.slice(0, 3000);
-        return (
-          "\n\n📋 PROJECT CONTEXT (auto-loaded from .zombiecoder/SSOT.md):\n" +
-          truncated +
-          "\n--- END PROJECT CONTEXT ---\n"
-        );
-      }
-    }
-  } catch (e) {
-    // Silent fail — no context is better than crashing
+// ─── 🧟 SSOT Auto-Inject: ক্লায়েন্টের পাঠানো project context inject করে ──
+// যদি ক্লায়েন্ট `project_context` বা `ssot` ফিল্ড দিয়ে থাকে, সেটা inject হয়।
+// না দিলে সার্ভার কিছু inject করে না — কারণ সার্ভারের filesystem ইউজারের লোকাল না।
+function getSSOTContext(clientCtx) {
+  if (clientCtx && typeof clientCtx === "string" && clientCtx.trim().length > 10) {
+    const truncated = clientCtx.slice(0, 3000);
+    return (
+      "\n\n📋 PROJECT CONTEXT (provided by client):\n" +
+      truncated +
+      "\n--- END PROJECT CONTEXT ---\n"
+    );
   }
   return "";
 }
 
 // ─── Single Agent Execute ─────────────────────────────────────
-async function executeSingleAgent(agentId, messages, stream, sessionId, tools) {
+async function executeSingleAgent(agentId, messages, stream, sessionId, tools, projectContext) {
   const startTime = Date.now();
   const agent = AGENTS.find((a) => a.id === agentId);
   if (!agent) return { success: false, error: "Agent not found: " + agentId };
@@ -4464,7 +4457,7 @@ async function executeSingleAgent(agentId, messages, stream, sessionId, tools) {
       "\n4. Provide backup recommendations before major changes.";
   }
 
-  const ssotCtx = getSSOTContext();
+  const ssotCtx = getSSOTContext(projectContext);
   const sysMsg = {
     role: "system",
     content:
@@ -4898,6 +4891,8 @@ async function executeMcpTool(tool, args) {
         [{ role: "user", content: args.input }],
         false,
         sessId,
+        undefined,
+        "",
       );
       return {
         content: [
@@ -5996,6 +5991,7 @@ const server = http.createServer(async (req, res) => {
       const stream = parsed.stream || false;
       const temperature = parsed.temperature || 0.7;
       const tools = parsed.tools || undefined;
+      const projectContext = parsed.project_context || parsed.ssot || "";
 
       // Get or create session
       let sessionId = parsed.session_id;
@@ -6334,7 +6330,7 @@ const server = http.createServer(async (req, res) => {
             "\n3. Read project structure first — don't suggest changes that break existing code.";
         }
 
-        const ssotCtx = getSSOTContext();
+        const ssotCtx = getSSOTContext(projectContext);
         const sysMsg = {
           role: "system",
           content:
@@ -6444,6 +6440,7 @@ const server = http.createServer(async (req, res) => {
         false,
         sessionId,
         tools,
+        projectContext,
       );
 
       if (!singleResult.success) {
@@ -6980,6 +6977,7 @@ async function handleWSMessage(socket, message) {
             false,
             sessionId,
             tools,
+            projectContext,
           );
           const maskedContent = maskModelIdentity(
             result.content || "No response",
