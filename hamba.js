@@ -4411,6 +4411,28 @@ async function executeMission(
   };
 }
 
+// ─── 🧟 SSOT Auto-Inject: প্রতিটি agent নিজে নিজেই project context পাবে ──
+function getSSOTContext() {
+  try {
+    const dir = mcpWorkingDir || path.resolve(".");
+    const ssotPath = path.join(dir, ".zombiecoder", "SSOT.md");
+    if (fs.existsSync(ssotPath)) {
+      const content = fs.readFileSync(ssotPath, "utf8").trim();
+      if (content && content.length > 0) {
+        const truncated = content.slice(0, 3000);
+        return (
+          "\n\n📋 PROJECT CONTEXT (auto-loaded from .zombiecoder/SSOT.md):\n" +
+          truncated +
+          "\n--- END PROJECT CONTEXT ---\n"
+        );
+      }
+    }
+  } catch (e) {
+    // Silent fail — no context is better than crashing
+  }
+  return "";
+}
+
 // ─── Single Agent Execute ─────────────────────────────────────
 async function executeSingleAgent(agentId, messages, stream, sessionId, tools) {
   const startTime = Date.now();
@@ -4442,6 +4464,7 @@ async function executeSingleAgent(agentId, messages, stream, sessionId, tools) {
       "\n4. Provide backup recommendations before major changes.";
   }
 
+  const ssotCtx = getSSOTContext();
   const sysMsg = {
     role: "system",
     content:
@@ -4450,6 +4473,7 @@ async function executeSingleAgent(agentId, messages, stream, sessionId, tools) {
       buildAgentIdentity(agent) +
       "\n\nPROOF REQUIREMENT: You MUST provide verifiable evidence for EVERY claim. If you cannot provide evidence, say 'আমার কাছে প্রমাণ নেই'. Responses without evidence are REJECTED." +
       extraRules +
+      ssotCtx +
       "\n\n🔧 TOOLS AVAILABLE: You have access to the following tools: read_file, write_file, list_directory, set_working_dir, get_working_dir, web_search, and open_browser. When the user asks you to read files, write files, list directories, or open files in a browser — USE these tools directly by calling them. Do NOT just describe what you would do — actually execute the tool calls. Only respond with text after you have completed all necessary tool operations.",
   };
 
@@ -6310,6 +6334,7 @@ const server = http.createServer(async (req, res) => {
             "\n3. Read project structure first — don't suggest changes that break existing code.";
         }
 
+        const ssotCtx = getSSOTContext();
         const sysMsg = {
           role: "system",
           content:
@@ -6317,7 +6342,8 @@ const server = http.createServer(async (req, res) => {
             "\n\n" +
             buildAgentIdentity(agent) +
             "\n\nPROOF REQUIREMENT: You MUST provide verifiable evidence for EVERY claim. If you cannot provide evidence, say 'আমার কাছে প্রমাণ নেই'. Responses without evidence are REJECTED." +
-            extraRules,
+            extraRules +
+            ssotCtx,
         };
 
         // Load memory
