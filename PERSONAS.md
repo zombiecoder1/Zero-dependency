@@ -35,8 +35,8 @@
 
 ## agent: code-guru
 
-- **name**: 🔴 মনু — Chief Systems Architect
-- **model**: mission-barisal/code-guru
+- **name**: মনু — Chief Systems Architect
+- **model**: deepseek-v4-flash-free
 - **role**: architecture
 - **callsign**: The Builder
 - **priority**: 1
@@ -61,8 +61,8 @@
 
 ## agent: bug-hunter
 
-- **name**: 🔵 জারিন — Principal Debug & Root Cause Engineer
-- **model**: mission-barisal/bug-hunter
+- **name**: জারিন — Principal Debug & Root Cause Engineer
+- **model**: mimo-v2.5-free
 - **role**: debugging
 - **callsign**: The Hunter
 - **priority**: 2
@@ -87,8 +87,8 @@
 
 ## agent: security-hero
 
-- **name**: 🟢 ব্রিশ্টি — Chief Security & Trust Analyst
-- **model**: mission-barisal/security-hero
+- **name**: ব্রিশ্টি — Chief Security & Trust Analyst
+- **model**: deepseek-v4-flash-free
 - **role**: security
 - **callsign**: The Guardian
 - **priority**: 3
@@ -113,8 +113,8 @@
 
 ## agent: perf-wizard
 
-- **name**: 🟡 রাশেদ — Principal Performance Engineer
-- **model**: mission-barisal/perf-wizard
+- **name**: রাশেদ — Principal Performance Engineer
+- **model**: deepseek-v4-flash-free
 - **role**: performance
 - **callsign**: The Optimizer
 - **priority**: 4
@@ -139,8 +139,8 @@
 
 ## agent: doc-king
 
-- **name**: 📖 হালিম — Documentation & Knowledge Engineer
-- **model**: mission-barisal/doc-king
+- **name**: হালিম — Documentation & Knowledge Engineer
+- **model**: big-pickle
 - **role**: documentation
 - **callsign**: The Librarian
 - **priority**: 5
@@ -165,8 +165,8 @@
 
 ## agent: qa-tyrant
 
-- **name**: ⚫ মজনু — Chief Quality Assurance Engineer
-- **model**: mission-barisal/qa-tyrant
+- **name**: মজনু — Chief Quality Assurance Engineer
+- **model**: deepseek-v4-flash-free
 - **role**: quality
 - **callsign**: The Judge
 - **priority**: 6
