@@ -1,0 +1,24 @@
+{
+  "mcpServers": {
+    "mission-barisal-render": {
+      "description": "🧟 Mission Barisal v3 - Render (Primary, no rate limit)",
+      "url": "https://zero-dependency-server.onrender.com/mcp",
+      "type": "http",
+      "tools": ["set_working_dir", "get_working_dir", "read_ssot", "read_file", "write_file", "web_search", "agent_mission", "agent_single", "get_memory", "list_directory", "open_browser"],
+      "headers": {
+        "X-MCP-Client-Name": "cursor",
+        "X-MCP-Client-Dir": "${workspaceFolder}"
+      }
+    },
+    "mission-barisal-kingwin": {
+      "description": "Mission Barisal v3 - kingwin360 (Fallback)",
+      "url": "https://api.kingwin360.com/mcp",
+      "type": "http",
+      "tools": ["set_working_dir", "get_working_dir", "read_ssot", "read_file", "write_file", "web_search", "agent_mission", "agent_single", "get_memory", "list_directory", "open_browser"],
+      "headers": {
+        "X-MCP-Client-Name": "cursor",
+        "X-MCP-Client-Dir": "${workspaceFolder}"
+      }
+    }
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "servers": [
+    {
+      "name": "mission-barisal-render",
+      "url": "https://zero-dependency-server.onrender.com/mcp",
+      "type": "http",
+      "description": "🧟 Mission Barisal v3 on Render - 6 agents, no rate limit"
+    },
+    {
+      "name": "mission-barisal-kingwin",
+      "url": "https://api.kingwin360.com/mcp",
+      "type": "http",
+      "description": "Mission Barisal v3 on kingwin360 - Fallback"
+    },
+    {
+      "name": "mission-barisal-skilltoearn",
+      "url": "http://m.skilltoearn.org/mcp",
+      "type": "http",
+      "description": "Mission Barisal v3 on skilltoearn"
+    }
+  ],
+  "autoConnect": true
+}

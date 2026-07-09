@@ -1,0 +1,274 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "model": "mission-barisal/code-guru",
+  "small_model": "mission-barisal/qa-tyrant",
+  "default_agent": "zombie-coder",
+  "provider": {
+    "mission-barisal": {
+      "name": "Mission Barisal - Render",
+      "npm": "@ai-sdk/openai-compatible",
+      "options": {
+        "baseURL": "https://zero-dependency-server.onrender.com/v1",
+        "timeout": 120000
+      },
+      "models": {
+        "mission": {
+          "name": "mission",
+          "tool_call": true,
+          "reasoning": true
+        },
+        "code-guru": {
+          "name": "code-guru",
+          "tool_call": true,
+          "reasoning": true
+        },
+        "bug-hunter": {
+          "name": "bug-hunter",
+          "tool_call": true,
+          "reasoning": true
+        },
+        "security-hero": {
+          "name": "security-hero",
+          "tool_call": true,
+          "reasoning": true
+        },
+        "perf-wizard": {
+          "name": "perf-wizard",
+          "tool_call": true,
+          "reasoning": true
+        },
+        "doc-king": {
+          "name": "doc-king",
+          "tool_call": true,
+          "reasoning": true
+        },
+        "qa-tyrant": {
+          "name": "qa-tyrant",
+          "tool_call": true,
+          "reasoning": true
+        }
+      }
+    },
+    "kingwin360-proxy": {
+      "name": "kingwin360 Proxy",
+      "npm": "@ai-sdk/openai-compatible",
+      "options": {
+        "baseURL": "https://api.kingwin360.com/v1",
+        "timeout": 30000
+      },
+      "models": {
+        "mission": {
+          "name": "mission",
+          "tool_call": true,
+          "reasoning": true
+        },
+        "code-guru": {
+          "name": "code-guru",
+          "tool_call": true,
+          "reasoning": true
+        },
+        "bug-hunter": {
+          "name": "bug-hunter",
+          "tool_call": true,
+          "reasoning": true
+        },
+        "security-hero": {
+          "name": "security-hero",
+          "tool_call": true,
+          "reasoning": true
+        },
+        "perf-wizard": {
+          "name": "perf-wizard",
+          "tool_call": true,
+          "reasoning": true
+        },
+        "doc-king": {
+          "name": "doc-king",
+          "tool_call": true,
+          "reasoning": true
+        },
+        "qa-tyrant": {
+          "name": "qa-tyrant",
+          "tool_call": true,
+          "reasoning": true
+        }
+      }
+    },
+    "skilltoearn-proxy": {
+      "name": "skilltoearn Proxy",
+      "npm": "@ai-sdk/openai-compatible",
+      "options": {
+        "baseURL": "http://m.skilltoearn.org/v1",
+        "timeout": 30000
+      },
+      "models": {
+        "mission": {
+          "name": "mission",
+          "tool_call": true,
+          "reasoning": true
+        },
+        "code-guru": {
+          "name": "code-guru",
+          "tool_call": true,
+          "reasoning": true
+        },
+        "bug-hunter": {
+          "name": "bug-hunter",
+          "tool_call": true,
+          "reasoning": true
+        },
+        "security-hero": {
+          "name": "security-hero",
+          "tool_call": true,
+          "reasoning": true
+        },
+        "perf-wizard": {
+          "name": "perf-wizard",
+          "tool_call": true,
+          "reasoning": true
+        },
+        "doc-king": {
+          "name": "doc-king",
+          "tool_call": true,
+          "reasoning": true
+        },
+        "qa-tyrant": {
+          "name": "qa-tyrant",
+          "tool_call": true,
+          "reasoning": true
+        }
+      }
+    }
+  },
+  "mcp": {
+    "mission-barisal-mcp": {
+      "type": "remote",
+      "url": "https://zero-dependency-server.onrender.com/mcp",
+      "enabled": true
+    },
+    "kingwin360-mcp": {
+      "type": "remote",
+      "url": "https://api.kingwin360.com/mcp",
+      "enabled": true
+    },
+    "skilltoearn-mcp": {
+      "type": "remote",
+      "url": "http://m.skilltoearn.org/mcp",
+      "enabled": true
+    }
+  },
+  "agent": {
+    "zombie-coder": {
+      "model": "mission-barisal/mission",
+      "mode": "primary",
+      "description": "🧟 ZombieCoder Dev Agent - Main coding assistant with MCP tools, RAG (SSOT), and multi-agent orchestration. Knows Bengali + English.",
+      "permission": {
+        "edit": "allow",
+        "bash": "allow",
+        "read": "allow",
+        "glob": "allow",
+        "grep": "allow",
+        "webfetch": "allow",
+        "websearch": "allow"
+      },
+      "prompt": "You are ZombieCoder Dev Agent. You speak Bengali primarily. You have access to: 1) MCP tools (read_file, write_file, etc.) 2) 6 sub-agents (code-guru, bug-hunter, etc.) 3) SSOT project context. Be helpful, honest, direct."
+    },
+    "zombie-explorer": {
+      "model": "mission-barisal/mission",
+      "mode": "all",
+      "description": "Fast code exploration subagent. Uses MCP tools for quick codebase analysis.",
+      "permission": {
+        "read": "allow",
+        "glob": "allow",
+        "grep": "allow",
+        "websearch": "allow"
+      },
+      "prompt": "You are a fast code exploration subagent. Quickly search and analyze codebases. Be concise."
+    },
+    "code-guru": {
+      "model": "mission-barisal/code-guru",
+      "mode": "all",
+      "description": "🧟 Code Guru - Monu: System architecture, design patterns, code structure expert. Mission Barisal's master architect.",
+      "permission": {
+        "read": "allow",
+        "glob": "allow",
+        "grep": "allow",
+        "webfetch": "allow",
+        "websearch": "allow"
+      }
+    },
+    "bug-hunter": {
+      "model": "mission-barisal/bug-hunter",
+      "mode": "all",
+      "description": "🧟 Bug Hunter - Jewel: Bug detection, debugging, error handling expert. Mission Barisal's crazy debugger.",
+      "permission": {
+        "read": "allow",
+        "glob": "allow",
+        "grep": "allow",
+        "webfetch": "allow",
+        "websearch": "allow"
+      }
+    },
+    "security-hero": {
+      "model": "mission-barisal/security-hero",
+      "mode": "all",
+      "description": "🧟 Security Hero - Bablu: Security audit, vulnerability detection, data protection expert. Mission Barisal's security fanatic.",
+      "permission": {
+        "read": "allow",
+        "glob": "allow",
+        "grep": "allow",
+        "webfetch": "allow",
+        "websearch": "allow"
+      }
+    },
+    "perf-wizard": {
+      "model": "mission-barisal/perf-wizard",
+      "mode": "all",
+      "description": "🧟 Performance Wizard - Rashed: Performance optimization, memory management, caching expert. Mission Barisal's speed maniac.",
+      "permission": {
+        "read": "allow",
+        "glob": "allow",
+        "grep": "allow",
+        "webfetch": "allow",
+        "websearch": "allow"
+      }
+    },
+    "doc-king": {
+      "model": "mission-barisal/doc-king",
+      "mode": "all",
+      "description": "🧟 Documentation King - Halim: Documentation, API specs, README, comments expert. Mission Barisal's documentation fanatic.",
+      "permission": {
+        "read": "allow",
+        "glob": "allow",
+        "grep": "allow",
+        "webfetch": "allow",
+        "websearch": "allow"
+      }
+    },
+    "qa-tyrant": {
+      "model": "mission-barisal/qa-tyrant",
+      "mode": "all",
+      "description": "🧟 QA Tyrant - Mojnu: Code quality, best practices, cross-verification expert. Mission Barisal's strictest quality checker.",
+      "permission": {
+        "read": "allow",
+        "glob": "allow",
+        "grep": "allow",
+        "webfetch": "allow",
+        "websearch": "allow"
+      }
+    },
+    "data-agent": {
+      "model": "mission-barisal/mission",
+      "mode": "all",
+      "description": "Data Remote Agent - Operates via MCP tools. Uses mission model for data processing tasks.",
+      "permission": {
+        "read": "allow",
+        "glob": "allow",
+        "grep": "allow",
+        "bash": "allow",
+        "webfetch": "allow",
+        "websearch": "allow"
+      }
+    }
+  }
+}
