@@ -13,7 +13,7 @@ const DOMAIN_CONFIGS = {
   "m.skilltoearn.org": {
     name: "Mission Barisal — Production",
     domain: "m.skilltoearn.org",
-    version: "3.2.0",
+    version: "3.2.1",
     type: "production",
     hasFrontend: true,
     hasPusher: true,  // .env-এ PUSHER_* থাকলে কাজ করবে
@@ -29,7 +29,7 @@ const DOMAIN_CONFIGS = {
     sessionVerifyUrl: "http://zombiecoder.my.id/api/verify-session",
     identity: {
       name: "ZombieCoder",
-      version: "3.2.0",
+      version: "3.2.1",
       tagline: "যেখানে কোড ও কথা বলে",
       branding: {
         owner: "Sahon Srabon",
@@ -52,7 +52,7 @@ const DOMAIN_CONFIGS = {
   "zero-dependency-server.onrender.com": {
     name: "Mission Barisal — Render",
     domain: "zero-dependency-server.onrender.com",
-    version: "3.2.0",
+    version: "3.2.1",
     type: "render",
     hasFrontend: false,  // Render free tier: no static files
     hasPusher: true,
@@ -67,7 +67,7 @@ const DOMAIN_CONFIGS = {
     sessionVerifyUrl: "http://zombiecoder.my.id/api/verify-session",
     identity: {
       name: "ZombieCoder",
-      version: "3.2.0",
+      version: "3.2.1",
       tagline: "যেখানে কোড ও কথা বলে",
       branding: {
         owner: "Sahon Srabon",
@@ -90,7 +90,7 @@ const DOMAIN_CONFIGS = {
   "api.kingwin360.com": {
     name: "Mission Barisal — KingWin360",
     domain: "api.kingwin360.com",
-    version: "3.2.0",
+    version: "3.2.1",
     type: "custom",
     hasFrontend: false,
     hasPusher: true,
@@ -108,7 +108,7 @@ const DOMAIN_CONFIGS = {
     sessionVerifyUrl: "http://zombiecoder.my.id/api/verify-session",
     identity: {
       name: "ZombieCoder",
-      version: "3.2.0",
+      version: "3.2.1",
       tagline: "যেখানে কোড ও কথা বলে",
       branding: {
         owner: "Sahon Srabon",
@@ -131,7 +131,7 @@ const DOMAIN_CONFIGS = {
   "localhost": {
     name: "Mission Barisal — Dev",
     domain: "localhost",
-    version: "3.2.0",
+    version: "3.2.1",
     type: "development",
     hasFrontend: true,
     hasPusher: false,
@@ -141,7 +141,7 @@ const DOMAIN_CONFIGS = {
     sessionVerifyUrl: "http://localhost:5010/api/verify-session",
     identity: {
       name: "ZombieCoder",
-      version: "3.2.0",
+      version: "3.2.1",
       tagline: "যেখানে কোড ও কথা বলে — DEV MODE",
       branding: {
         owner: "Sahon Srabon",
@@ -164,7 +164,7 @@ const DOMAIN_CONFIGS = {
 const DEFAULT_DOMAIN_CONFIG = {
   name: "Mission Barisal",
   domain: "unknown",
-  version: "3.2.0",
+  version: "3.2.1",
   type: "unknown",
   hasFrontend: false,
   hasPusher: false,
@@ -174,7 +174,7 @@ const DEFAULT_DOMAIN_CONFIG = {
   sessionVerifyUrl: "http://zombiecoder.my.id/api/verify-session",
   identity: {
     name: "ZombieCoder",
-    version: "3.2.0",
+    version: "3.2.1",
     tagline: "যেখানে কোড ও কথা বলে",
     branding: {
       owner: "Sahon Srabon",
