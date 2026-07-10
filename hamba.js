@@ -5358,6 +5358,7 @@ function handleMCP(req, res) {
     if (method === "tools/call") {
       const { name, arguments: args } = params || {};
       log("INFO", "MCP_TOOLS_CALL", { tool: name });
+      trackToolUsage(name);
       executeMcpTool(name, args || {})
         .then((result) => {
           jsonResponse(res, 200, { jsonrpc: "2.0", id, result });
@@ -5369,6 +5370,7 @@ function handleMCP(req, res) {
           });
         })
         .catch((error) => {
+          trackToolUsage(name, true);
           jsonResponse(res, 200, {
             jsonrpc: "2.0",
             id,
@@ -5569,9 +5571,65 @@ const STATS = {
   totalAgents: 0,
   models: FREE_MODELS.length,
   startTime: Date.now(),
+  // Usage tracking
+  modelUsage: {},      // { "model-id": { count, lastUsed } }
+  agentUsage: {},      // { "agent-id": { count, lastUsed, errors } }
+  providerUsage: {},   // { "provider-id": { count, lastUsed, errors, rateLimits } }
+  toolUsage: {},       // { "tool-name": { count, lastUsed, errors } }
+  domainRequests: {},  // { "domain": { count, lastUsed } }
 };
 const mcpClients = new Map();
 let mcpActiveConnections = 0;
+
+// ─── Usage Tracking Helpers ──────────────────────────────────
+function trackModelUsage(modelId) {
+  if (!STATS.modelUsage[modelId]) STATS.modelUsage[modelId] = { count: 0, lastUsed: null };
+  STATS.modelUsage[modelId].count++;
+  STATS.modelUsage[modelId].lastUsed = new Date().toISOString();
+}
+
+function trackAgentUsage(agentId, isError = false) {
+  if (!STATS.agentUsage[agentId]) STATS.agentUsage[agentId] = { count: 0, lastUsed: null, errors: 0 };
+  STATS.agentUsage[agentId].count++;
+  STATS.agentUsage[agentId].lastUsed = new Date().toISOString();
+  if (isError) STATS.agentUsage[agentId].errors++;
+}
+
+function trackProviderUsage(providerId, isError = false, isRateLimit = false) {
+  if (!STATS.providerUsage[providerId]) STATS.providerUsage[providerId] = { count: 0, lastUsed: null, errors: 0, rateLimits: 0 };
+  STATS.providerUsage[providerId].count++;
+  STATS.providerUsage[providerId].lastUsed = new Date().toISOString();
+  if (isError) STATS.providerUsage[providerId].errors++;
+  if (isRateLimit) STATS.providerUsage[providerId].rateLimits++;
+}
+
+function trackToolUsage(toolName, isError = false) {
+  if (!STATS.toolUsage[toolName]) STATS.toolUsage[toolName] = { count: 0, lastUsed: null, errors: 0 };
+  STATS.toolUsage[toolName].count++;
+  STATS.toolUsage[toolName].lastUsed = new Date().toISOString();
+  if (isError) STATS.toolUsage[toolName].errors++;
+}
+
+function trackDomainRequest(domain) {
+  if (!STATS.domainRequests[domain]) STATS.domainRequests[domain] = { count: 0, lastUsed: null };
+  STATS.domainRequests[domain].count++;
+  STATS.domainRequests[domain].lastUsed = new Date().toISOString();
+}
+
+function getUsageStats() {
+  return {
+    totalRequests: STATS.totalRequests,
+    totalAgents: STATS.totalAgents,
+    uptime: Math.floor((Date.now() - STATS.startTime) / 1000),
+    modelUsage: STATS.modelUsage,
+    agentUsage: STATS.agentUsage,
+    providerUsage: STATS.providerUsage,
+    toolUsage: STATS.toolUsage,
+    domainRequests: STATS.domainRequests,
+    mcpClients: Array.from(mcpClients.values()),
+    mcpActiveConnections,
+  };
+}
 
 const server = http.createServer(async (req, res) => {
   const startTime = Date.now();
@@ -5580,6 +5638,10 @@ const server = http.createServer(async (req, res) => {
 
   // Per-request domain detection (for multi-domain servers)
   const requestDomain = detectDomain(req.headers.host);
+
+  // Track domain requests
+  STATS.totalRequests++;
+  trackDomainRequest(requestDomain);
 
   // CORS
   const corsOrigin = getCorsOrigin(req.headers.origin);
@@ -5613,8 +5675,6 @@ const server = http.createServer(async (req, res) => {
     }
     return;
   }
-
-  STATS.totalRequests++;
 
   try {
     // ─── GET /health ─────────────────────────────────────────
@@ -5986,6 +6046,17 @@ const server = http.createServer(async (req, res) => {
       return;
     }
 
+    // ─── GET /api/pusher-config ──────────────────────────────
+    // Returns Pusher key and cluster for client-side connection (safe — no secret)
+    if (url === "/api/pusher-config" && method === "GET") {
+      jsonResponse(res, 200, {
+        enabled: PUSHER_ENABLED,
+        key: PUSHER_KEY || null,
+        cluster: PUSHER_CLUSTER || "ap2",
+      });
+      return;
+    }
+
     // ─── GET /api/agents ─────────────────────────────────────
     if (url === "/api/agents" && method === "GET") {
       log("INFO", "REQUEST", {
@@ -6140,6 +6211,9 @@ const server = http.createServer(async (req, res) => {
       const temperature = parsed.temperature || 0.7;
       const tools = parsed.tools || undefined;
       const projectContext = parsed.project_context || parsed.ssot || "";
+
+      // Track model usage
+      trackModelUsage(model);
 
       // Get or create session
       let sessionId = parsed.session_id;
@@ -6531,7 +6605,14 @@ const server = http.createServer(async (req, res) => {
 
             res.write("data: " + JSON.stringify(chunk) + "\n\n");
           },
-          tools,
+          tools || Object.entries(MCP_TOOLS).map(([name, def]) => ({
+            type: "function",
+            function: {
+              name,
+              description: def.description || name,
+              parameters: def.parameters || { type: "object", properties: {} },
+            },
+          })),
         );
 
         // Final [DONE] chunk
@@ -6680,6 +6761,9 @@ const server = http.createServer(async (req, res) => {
       const context = parsed.context || parsed.system || "";
       const tools = parsed.tools || undefined;
       let sessionId = parsed.session_id;
+
+      // Track mission usage
+      trackAgentUsage("mission");
 
       if (!sessionId || !getSession(sessionId)) {
         const session = createSession(
@@ -6915,6 +6999,97 @@ const server = http.createServer(async (req, res) => {
       jsonResponse(res, antiDoteResult.success ? 200 : 422, {
         ...antiDoteResult,
         session_id: sessionId,
+      });
+      return;
+    }
+
+    // ─── GET /api/admin/stats ────────────────────────────────
+    // Full usage statistics for admin dashboard
+    if (url === "/api/admin/stats" && method === "GET") {
+      jsonResponse(res, 200, getUsageStats());
+      return;
+    }
+
+    // ─── GET /api/admin/ssot-status ──────────────────────────
+    // Check SSOT auto-generation status
+    if (url === "/api/admin/ssot-status" && method === "GET") {
+      const ssotPath = path.resolve(".zombiecoder/SSOT.md");
+      const ssotExists = fs.existsSync(ssotPath);
+      let ssotInfo = { exists: false, path: ssotPath };
+      if (ssotExists) {
+        const stat = fs.statSync(ssotPath);
+        const content = fs.readFileSync(ssotPath, "utf8");
+        ssotInfo = {
+          exists: true,
+          path: ssotPath,
+          size: stat.size,
+          modified: stat.mtime.toISOString(),
+          lines: content.split("\n").length,
+          hasProjectName: content.includes("Project:") || content.includes("#"),
+          hasStructure: content.includes("structure") || content.includes("Structure"),
+        };
+      }
+      jsonResponse(res, 200, {
+        ssot: ssotInfo,
+        autoGenerate: true,
+        scanDir: path.resolve("."),
+      });
+      return;
+    }
+
+    // ─── GET /api/admin/agents-status ────────────────────────
+    // Detailed agent status with usage
+    if (url === "/api/admin/agents-status" && method === "GET") {
+      const agentsWithStatus = AGENTS.map(a => ({
+        id: a.id,
+        name: a.name,
+        role: a.role,
+        usage: STATS.agentUsage[a.id] || { count: 0, lastUsed: null, errors: 0 },
+        status: STATS.agentUsage[a.id]?.lastUsed
+          ? (Date.now() - new Date(STATS.agentUsage[a.id].lastUsed).getTime() < 60000 ? "active" : "idle")
+          : "idle",
+      }));
+      jsonResponse(res, 200, { agents: agentsWithStatus });
+      return;
+    }
+
+    // ─── GET /api/admin/mcp-connections ──────────────────────
+    // MCP client connections and tool usage
+    if (url === "/api/admin/mcp-connections" && method === "GET") {
+      jsonResponse(res, 200, {
+        activeConnections: mcpActiveConnections,
+        clients: Array.from(mcpClients.values()),
+        tools: Object.keys(MCP_TOOLS).map(name => ({
+          name,
+          usage: STATS.toolUsage[name] || { count: 0, lastUsed: null, errors: 0 },
+        })),
+        totalTools: Object.keys(MCP_TOOLS).length,
+      });
+      return;
+    }
+
+    // ─── GET /api/admin/rate-limits ──────────────────────────
+    // Rate limit status per domain/provider
+    if (url === "/api/admin/rate-limits" && method === "GET") {
+      const domains = Object.keys(RATE_LIMIT_STATES);
+      const rateLimitStatus = {};
+      for (const domain of domains) {
+        const state = RATE_LIMIT_STATES[domain];
+        rateLimitStatus[domain] = {
+          limited: state.limited,
+          provider: state.provider,
+          model: state.model,
+          detectedAt: state.detectedAt ? new Date(state.detectedAt).toISOString() : null,
+          cooldownMs: state.cooldownMs,
+          remainingMs: state.limited ? Math.max(0, state.cooldownMs - (Date.now() - state.detectedAt)) : 0,
+        };
+      }
+      jsonResponse(res, 200, {
+        limits: rateLimitStatus,
+        config: {
+          maxRateLimitPerServer: DOMAIN_CFG.maxRateLimitPerServer,
+          domain: requestDomain,
+        },
       });
       return;
     }
